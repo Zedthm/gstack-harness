@@ -1,6 +1,7 @@
 import subprocess
 import time
 import re
+import json
 from dataclasses import dataclass, field
 from typing import Optional, Any
 from pathlib import Path
@@ -97,16 +98,56 @@ class SkillExecutor:
         return result.stdout[:1000] if result.stdout else "[OK]"
 
     def _execute_ask(self, step: Step) -> str:
-        return f"[ASK] {step.description[:80]}"
+        return json.dumps({
+            "action": "ASK_USER",
+            "step": step.number,
+            "description": step.description,
+            "prompt": step.description,
+            "context": {"skill": self.skill.name, "phase": self.skill.phase}
+        })
 
     def _execute_read(self, step: Step) -> str:
-        return f"[READ] {step.description[:80]}"
+        return json.dumps({
+            "action": "READ_FILES",
+            "step": step.number,
+            "description": step.description,
+            "files_to_read": self._extract_file_paths(step.description),
+            "context": {"skill": self.skill.name}
+        })
 
     def _execute_write(self, step: Step) -> str:
-        return f"[WRITE] {step.description[:80]}"
+        return json.dumps({
+            "action": "WRITE_FILES",
+            "step": step.number,
+            "description": step.description,
+            "files_to_write": self._extract_file_specs(step.description),
+            "context": {"skill": self.skill.name}
+        })
 
     def _execute_conditional(self, step: Step) -> str:
-        return f"[CONDITIONAL] {step.description[:80]}"
+        return json.dumps({
+            "action": "EVALUATE_CONDITION",
+            "step": step.number,
+            "description": step.description,
+            "condition": step.description,
+            "context": {"skill": self.skill.name}
+        })
+
+    def _extract_file_paths(self, text: str) -> list[str]:
+        """Extract file paths from description text."""
+        paths = []
+        for pattern in [r'["\']([^"\']+\.md)["\']', r'["\']([^"\']+\.py)["\']',
+                         r'["\']([^"\']+\.json)["\']', r'["\']([^"\']+\.yaml)["\']']:
+            paths.extend(re.findall(pattern, text))
+        return list(set(paths))
+
+    def _extract_file_specs(self, text: str) -> list[dict]:
+        """Extract file write specs from description."""
+        specs = []
+        path_matches = re.findall(r'["\']([^"\']+\.(?:md|py|json|yaml|txt))["\']', text)
+        for path in path_matches:
+            specs.append({"path": path, "instruction": text[:200]})
+        return specs
 
     def execute_all(self, skill_body: str = None) -> DispatchResult:
         if not self.skill:
