@@ -1,0 +1,83 @@
+gstack-harness:
+  version: 1.0.0
+  
+  # Bootstrap
+  bootstrap:
+    trust_boundary: ask  # ask | auto-approve | deny
+    max_skill_budget: 15360   # chars for full skill catalog (~1% of 128K)
+    max_per_entry: 248  # chars per skill entry
+    max_index_budget: 25000  # bytes for memory index
+  
+  # Memory
+  memory:
+    auto_memory: true
+    max_index_lines: 200
+    max_index_bytes: 25000
+    max_entry_chars: 150
+    background_extraction: true
+    extraction_turn_cap: 5
+    topic_taxonomy:
+      - user
+      - feedback
+      - project
+      - reference
+    cross_project_learnings: false
+  
+  # Skills
+  skills:
+    lazy_load: true
+    discovery_budget: 15360  # chars
+    per_entry_cap: 248  # chars
+    sources:
+      - project  # PROJECT_ROOT/.agents/skills/ (priority 1)
+      - user     # ~/.mySkills/skills/ (priority 2)
+      - bundled  # harness/skills/ (priority 3)
+  
+  # Permissions
+  security:
+    default: deny
+    concurrency: per-call
+    protected_paths:
+      - "/etc/"
+      - "/usr/"
+      - "**/.env"
+      - "**/credentials*"
+      - "**/secrets*"
+      - "**/*.pem"
+      - "~/.ssh/"
+      - "~/.aws/"
+    bypass_immune: true
+  
+  # Context
+  context:
+    max_always_on: 50000  # bytes
+    max_per_section:
+      memory_index: 25000
+      skill_catalog: 15360
+      agents_md: 5120
+      config: 1024
+    compression:
+      recent_turns_keep: 3
+      recovery_pointer: true
+  
+  # Task
+  tasks:
+    typed_ids: true
+    id_suffix_length: 6
+    terminal_states:
+      - completed
+      - failed
+      - killed
+    eviction_delay_seconds: 30
+    notify_before_evict: true
+  
+  # Checkpoint
+  checkpoint:
+    mode: explicit  # explicit | continuous
+    push: false
+    wip_prefix: "WIP:"
+  
+  # Telemetry
+  telemetry: false  # off | anonymous | community
+  proactive: true
+  explain_level: default  # default | terse
