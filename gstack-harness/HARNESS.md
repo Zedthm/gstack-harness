@@ -1,189 +1,314 @@
-# GSTACK-HARNESS: Multi-Agent Engineering Harness
+# Agentic Harness Framework v2
 
-**A complete fusion of gstack specialists + Agentic Harness Patterns.**
-
-## What This Is
-
-A production-grade multi-agent harness that fuses 25+ gstack specialists with 6 harness pattern layers (Memory, Skills, Tools & Safety, Context Engineering, Multi-agent Coordination, Lifecycle). The result: you describe what you want, the harness routes work to the right specialists, you make 1-2 critical decisions, and you验收 the result.
-
-## Architecture Overview
-
-```
-User Request
-    │
-    ▼
-┌─────────────────────────────────────────┐
-│  🎯 COORDINATOR (harness/coordinator.md) │
-│  - Synthesizes user intent               │
-│  - Picks delegation pattern              │
-│  - Dispatches Phase 1 workers            │
-│  - Synthesizes → writes spec             │
-│  - Dispatches Phase 2 workers            │
-│  - Dispatches Phase 3 verification       │
-└────┬──────────────────────────────┬──────┘
-     │                              │
-     ▼                              ▼
-┌────────────┐              ┌──────────────┐
-│ REVIEWERS  │              │ EXECUTORS    │
-│ (fresh ctx)│              │ (spec-based) │
-│ - Codex for│              │ - Claude for │
-│   facts,   │              │   building,  │
-│   safety,  │              │   editing,   │
-│   UX audit │              │   shipping   │
-└────┬───────┘              └──────┬───────┘
-     │                             │
-     ▼                             ▼
-┌─────────────────────────────────────────────┐
-│  📁 FILESYSTEM COORDINATION (harness/core/)  │
-│  context-map.md  │ task-board.md            │
-│  progress-log.md │ handoff_v*.md            │
-│  codex_review_*.md                          │
-└─────────────────────────────────────────────┘
-```
-
-## The Six Harness Layers
-
-| # | Layer | Source | What It Does |
-|---|-------|--------|-------------|
-| 1 | **Memory** | harness/core/memory.md | Instruction memory (org→user→project→local), auto-memory (type taxonomy), session extraction, propose-not-auto |
-| 2 | **Skills** | harness/core/harness-skills.md | Lazy-loaded specialist skills, metadata discovery (~1% budget), activation on intent match |
-| 3 | **Tools & Safety** | harness/core/permission-gate.md | Fail-closed default, per-call concurrency, multi-source permission pipeline |
-| 4 | **Context Engineering** | harness/core/context-engineering.md | Select (JIT), Write (learning), Compress (reactive), Isolate (delegation) |
-| 5 | **Multi-agent** | harness/core/coordinator.md | Coordinator (zero-inheritance), Fork (single-level), Swarm (flat roster) |
-| 6 | **Lifecycle** | harness/core/bootstrap.md | Hooks at lifecycle moments, typed task state machines, trust-split init |
-
-## The 25+ Gstack Specialists
-
-Each specialist is a gstack skill adapted to the harness coordination protocol:
-
-| Specialist | Harness Role | Trigger |
-|------------|-------------|---------|
-| **Office Hours** | Phase 0: Intent → Design Doc | "I want to build..." |
-| **CEO Review** | Phase 1: Strategy & Scope | plan-ceo-review |
-| **Eng Manager** | Phase 1: Architecture & Tests | plan-eng-review |
-| **Design Review** | Phase 1: UX Audit | plan-design-review |
-| **Design Consultant** | Phase 1: Design System | design-consultation |
-| **Design Shotgun** | Phase 1: Variant Exploration | design-shotgun |
-| **Design HTML** | Phase 2: Frontend Implementation | design-html |
-| **Review** | Phase 3: Pre-landing PR Review | /review |
-| **Investigate** | Phase 3: Root-cause Debug | /investigate |
-| **QA Lead** | Phase 4: Browser Testing + Fix | /qa |
-| **Security Officer** | Phase 4: OWASP + STRIDE | /cso |
-| **Ship** | Phase 5: Test → PR → Push | /ship |
-| **Land & Deploy** | Phase 5: CI → Deploy → Verify | /land-and-deploy |
-| **Document Release** | Phase 6: Doc Sync | /document-release |
-| **Retro** | Phase 7: Weekly Retrospective | /retro |
-| **Canary** | Phase 7+: Post-deploy Monitor | /canary |
-| **Benchmark** | Phase 7+: Perf Baseline | /benchmark |
-| **Context Save** | Cross-phase: State Capture | /context-save |
-| **Context Restore** | Cross-phase: State Resume | /context-restore |
-| **Codex** | Cross-phase: 2nd Opinion | /codex |
-| **Autoplan** | Cross-phase: Auto Review Pipeline | /autoplan |
-| **Learn** | Cross-phase: Knowledge Base | /learn |
-| **Browse** | Cross-phase: Real Browser Access | /browse |
-
-## User Experience
-
-**You do:**
-1. Describe your goal (one sentence or a paragraph)
-2. Answer 1-2 AskUserQuestion decision briefs at critical gates
-3. 验收 the result — approve, request changes, or accept
-
-**The harness does:**
-- Routing: picks the right specialists from gstack
-- Context budgets: ensures each agent gets exactly what it needs
-- Handoffs: writes clean handoff files between sessions/agents
-- Quality gates: enforces review-checklist before any output reaches you
-- Memory: accumulates learnings across sessions
-- Safety: fail-closed, per-call concurrency, trust boundaries
-
-## Sprint Pipeline
-
-```
-Think → Plan → Build → Review → Test → Ship → Reflect → Monitor
- │        │        │       │        │      │       │         │
- office   plan-ceo design  review   qa     ship    retro     canary
- hours    plan-eng html    codex    canary  docs   benchmark
-          autoplan  qa-only        security
-```
-
-Each phase feeds the next via filesystem handoffs. Nothing falls through.
+A layered execution framework for orchestrating AI agents, skills, and multi-agent coordination. Built on Bun with process-based isolation and event-driven hooks.
 
 ## Quick Start
 
-1. Read this file
-2. Run the coordinator skill: `@harness/coordinator`
-3. Describe your goal
-4. Answer the AskUserQuestion gates
-5. 验收
+```bash
+# List available skills
+bun run src/runtime/skill-runner.ts --list
 
-## Project Structure
+# Run a skill directly
+bun run src/runtime/skill-runner.ts --skill investigate --arg repo=myrepo
 
-```
-gstack-harness/
-├── SKILL.md                          # Unified entry point
-├── AGENTS.md                         # Project-wide agent rules
-├── harness/
-│   ├── core/
-│   │   ├── bootstrap.md              # Init sequence with trust boundary
-│   │   ├── coordinator.md            # Multi-agent orchestration (3 patterns)
-│   │   ├── handoff-protocol.md       # Agent-to-agent handoff format
-│   │   ├── harness-skills.md         # Skill runtime + lazy loading
-│   │   ├── memory.md                 # Memory persistence + extraction
-│   │   ├── context-engineering.md    # Select/Write/Compress/Isolate
-│   │   ├── permission-gate.md        # Tool safety + fail-closed
-│   │   └── task-decomposition.md     # Typed IDs + state machines + eviction
-│   ├── quality-gates/
-│   │   ├── review-checklist.md       # Blocking vs quality checks
-│   │   ├── execution-strategy.md     # Parallel dispatch + brief templates
-│   │   └── output-format.md          # Structured output specification
-│   └── references/
-│       ├── agent-orchestration.md    # Deep-dive on 3 patterns
-│       ├── bootstrap-sequence.md     # Deep-dive on init ordering
-│       ├── context-engineering.md    # Deep-dive on 4 operations
-│       ├── hook-lifecycle.md         # Deep-dive on hook types
-│       ├── memory-persistence.md     # Deep-dive on memory layers
-│       ├── permission-gate.md        # Deep-dive on permission pipeline
-│       ├── select-pattern.md         # Deep-dive on JIT loading
-│       ├── compress-pattern.md       # Deep-dive on reactive compaction
-│       └── isolate-pattern.md        # Deep-dive on delegation isolation
-├── skills/
-│   ├── office-hours.md               # Phase 0
-│   ├── plan-ceo-review.md            # Phase 1A
-│   ├── plan-eng-review.md            # Phase 1B
-│   ├── plan-design-review.md         # Phase 1C
-│   ├── design-consultation.md        # Phase 1C
-│   ├── design-shotgun.md             # Phase 1C
-│   ├── design-html.md                # Phase 2
-│   ├── review.md                     # Phase 3
-│   ├── investigate.md                # Phase 3
-│   ├── qa.md                         # Phase 4
-│   ├── qa-only.md                    # Phase 4
-│   ├── codex.md                      # Phase 3
-│   ├── security.md                   # Phase 4
-│   ├── ship.md                       # Phase 5
-│   ├── land-and-deploy.md            # Phase 5
-│   ├── document-release.md           # Phase 6
-│   ├── retro.md                      # Phase 7
-│   ├── canary.md                     # Phase 7+
-│   ├── benchmark.md                  # Phase 7+
-│   ├── context-save.md               # Cross-phase
-│   ├── context-restore.md            # Cross-phase
-│   ├── learn.md                      # Cross-phase
-│   ├── browse.md                     # Cross-phase
-│   └── autoplan.md                   # Cross-phase
-├── roles/
-│   ├── reviewer-brief.md             # Codex-based reviewer role
-│   ├── executor-brief.md             # Claude-based executor role
-│   ├── coordinator-brief.md          # Orchestrator role
-│   └── qa-brief.md                   # QA specialist role
-├── memory/
-│   ├── MEMORY.md                     # Auto-memory index (capped)
-│   └── topics/                       # Topic files (on-demand detail)
-└── docs/
-    └── distillation-practice.md       # How this was built
+# Create and run a task
+bun run src/runtime/task.ts --create --skill review --arg branch=main
+bun run src/runtime/task.ts --run task_1234567890_abc
+
+# Run multi-agent in parallel
+bun run src/runtime/swarm.ts --test
 ```
 
-## License
+## The Six Layers
 
-MIT — Free forever, open source, fork freely.
+| Layer | File | Purpose |
+|-------|------|---------|
+| Memory | `memory.ts` | LLM-powered persistent memory with semantic search |
+| Skills | `skill-runner.ts` | Markdown-based skill loading and execution |
+| Tools | `executor.ts` | Bash command execution engine |
+| Context | `context.ts` | Context building, injection, snapshots |
+| Multi-Agent | `fork.ts`, `swarm.ts`, `coordinator.ts` | Process forking, swarm coordination, task routing |
+| Lifecycle | `task.ts`, `hooks.ts` | Task management and event-driven hooks |
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the full technical description of each layer.
+
+## Core Usage Patterns
+
+### Running Skills
+
+Skills live in `harness/skills/<name>.md` with `## Workflow` and `## Execution` sections.
+
+```bash
+# Run a skill with arguments
+bun run src/runtime/skill-runner.ts --skill investigate --arg repo=gstack --arg branch=main
+
+# List all available skills
+bun run src/runtime/skill-runner.ts --list
+```
+
+Arguments become environment variables: `--arg repo=myrepo` sets `ARG_REPO=myrepo`.
+
+### Task Lifecycle
+
+Tasks track skill execution with step-level granularity.
+
+```bash
+# Create a task
+bun run src/runtime/task.ts --create --skill review --arg branch=main
+
+# Run it
+bun run src/runtime/task.ts --run task_1234567890_abc
+
+# Check status
+bun run src/runtime/task.ts --status task_1234567890_abc
+
+# List all tasks
+bun run src/runtime/task.ts --list
+
+# Cancel if needed
+bun run src/runtime/task.ts --cancel task_1234567890_abc
+```
+
+Tasks store state in `$CWD/.gstack-harness/tasks/<task_id>.json`.
+
+### Multi-Agent Coordination
+
+**Fork — spawn a real child process:**
+
+```typescript
+import { fork } from './fork';
+
+const result = await fork({
+  agent_id: 'agent-1',
+  skill_name: 'investigate',
+  args: { repo: 'myrepo' }
+});
+// result: { pid, exitCode, stdout, stderr }
+```
+
+**Swarm — run multiple agents:**
+
+```typescript
+import { swarm } from './swarm';
+
+const result = await swarm({
+  agents: [
+    { id: 'agent-1', skill: 'review' },
+    { id: 'agent-2', skill: 'qa', args: { url: 'https://staging.myapp.com' } },
+    { id: 'agent-3', skill: 'investigate' }
+  ],
+  coordination: 'parallel'  // or 'sequential' or 'hierarchical'
+});
+// result.aggregated: { totalAgents, successfulAgents, failedAgents, successRate, pids[] }
+```
+
+Run the demo:
+```bash
+bun run src/runtime/swarm.ts --test
+```
+
+**Coordinator — register agents and schedule tasks:**
+
+```typescript
+const coordinator = new Coordinator();
+
+// Register an agent
+coordinator.register({
+  id: 'dev-1',
+  name: 'Dev Agent',
+  capabilities: ['coding', 'review'],
+  maxConcurrentTasks: 3,
+  priority: 8
+});
+
+// Schedule a task
+const result = await coordinator.schedule({
+  type: 'code-review',
+  priority: 5,
+  requiredCapabilities: ['review'],
+  payload: { repo: 'myrepo', branch: 'main' },
+  maxRetries: 3,
+  timeoutMs: 300000
+});
+
+// Check agent status
+const status = coordinator.getAgentStatus('dev-1');  // 'idle' | 'busy' | 'failing' | 'terminated'
+
+// List all agents
+const agents = coordinator.listAgents();
+```
+
+CLI usage:
+```bash
+bun run src/runtime/coordinator.ts --register --agent @/tmp/agent.json
+bun run src/runtime/coordinator.ts --list-agents
+bun run src/runtime/coordinator.ts --status dev-1
+bun run src/runtime/coordinator.ts --monitor dev-1
+bun run src/runtime/coordinator.ts --reschedule --task-id task_123_abc
+```
+
+### Memory and Context
+
+**Memory — persistent learnings with LLM extraction:**
+
+```bash
+# Save a memory
+bun run src/runtime/memory.ts --save --agent user1 --type error-patterns --content "React useEffect cleanup: always removeEventListener in return"
+
+# Search memories
+bun run src/runtime/memory.ts --recall --agent user1 --query "React"
+
+# Extract without saving
+bun run src/runtime/memory.ts --extract --agent user1 --type skill-patterns --content "TypeScript generics"
+```
+
+Memory types: `skill-patterns`, `error-patterns`, `project-context`, `user-preferences`
+
+Storage: `$CWD/.gstack-harness/memory/<type>.jsonl`
+
+**Context — build and inject context:**
+
+```bash
+# Build context for an agent/task
+bun run src/runtime/context.ts --build --agent agent-123 --task "review-pr"
+
+# Inject skill metadata
+bun run src/runtime/context.ts --inject --skill investigate
+
+# Snapshot current state
+bun run src/runtime/context.ts --snapshot
+
+# Restore from snapshot
+bun run src/runtime/context.ts --restore --file .gstack/context/snapshot-1234567890.json
+```
+
+### Event-Driven Hooks
+
+Hooks intercept execution at key points.
+
+```typescript
+import { HookRegistry } from './hooks';
+
+const registry = new HookRegistry();
+
+// Register a hook (lower priority = earlier execution)
+registry.register('PreToolUse', async (data) => {
+  if (data.tool_name === 'Bash' && data.args?.command?.includes('rm -rf')) {
+    return { allowed: false, reason: 'Blocking dangerous command', blocked: true };
+  }
+  return { allowed: true };
+}, 100);
+
+// Trigger hooks
+const result = await registry.trigger('PreToolUse', { timestamp: Date.now(), tool_name: 'Bash' });
+```
+
+Available events:
+- `PreToolUse(tool_name, args)` — Before tool execution
+- `PostToolUse(tool_name, args, result)` — After tool execution
+- `OnAgentStart(agent_id, task)` — Agent starts
+- `OnAgentEnd(agent_id, result)` — Agent ends
+- `OnError(agent_id, error)` — Error occurs
+
+### Context Snapshots
+
+Persist and restore execution context:
+
+```typescript
+import { createSnapshot, restoreContext, saveSnapshot, loadSnapshot } from './context';
+
+// Create and save
+const snapshot = createSnapshot(currentContext);
+const path = saveSnapshot(snapshot);
+
+// Load and restore
+const loaded = loadSnapshot(path);
+const context = restoreContext(loaded);
+```
+
+Snapshots include: version, timestamp, recent_memories, active_task, skill_metadata, user_preferences, injected_skills.
+
+## Storage Layout
+
+```
+$CWD/.gstack-harness/
+├── memory/           # Memory layer JSONL files
+│   ├── skill-patterns.jsonl
+│   ├── error-patterns.jsonl
+│   ├── project-context.jsonl
+│   └── user-preferences.jsonl
+├── coordinator/
+│   ├── agents/       # Agent state JSON files
+│   └── scheduled/    # Scheduled task JSON files
+├── tasks/            # Task state JSON files
+├── hooks.json        # Serialized hook registry
+└── context/          # Context snapshots
+    └── current.json  # Active context
+```
+
+## Design Principles
+
+1. **Separation of concerns** — Each layer has a single responsibility
+2. **Process isolation** — Forked agents run in separate processes, not threads
+3. **Event-driven** — Lifecycle hooks allow interception without modifying core logic
+4. **Persistence by default** — All state written to disk for crash recovery
+5. **Unix philosophy** — Small composable tools; layer via IPC and shared storage
+
+## Example: Full Multi-Agent Workflow
+
+```typescript
+import { fork } from './fork';
+import { swarm } from './swarm';
+import { Coordinator } from './coordinator';
+
+// 1. Register agents with the coordinator
+const coordinator = new Coordinator();
+coordinator.register({ id: 'dev-1', name: 'Dev', capabilities: ['coding'], maxConcurrentTasks: 2, priority: 7 });
+coordinator.register({ id: 'qa-1', name: 'QA', capabilities: ['qa'], maxConcurrentTasks: 3, priority: 8 });
+
+// 2. Fork a skill in a child process
+const forkedResult = await fork({ agent_id: 'dev-1', skill_name: 'investigate', args: { repo: 'gstack' } });
+
+// 3. Run multiple agents in parallel via swarm
+const swarmResult = await swarm({
+  agents: [
+    { id: 'agent-1', skill: 'review', args: { branch: 'main' } },
+    { id: 'agent-2', skill: 'qa', args: { url: 'https://staging.myapp.com' } },
+    { id: 'agent-3', skill: 'investigate', args: { repo: 'gstack' } }
+  ],
+  coordination: 'parallel'
+});
+
+// 4. Schedule work through coordinator
+await coordinator.schedule({
+  type: 'code-review',
+  priority: 5,
+  requiredCapabilities: ['review'],
+  payload: { repo: 'myrepo', branch: 'feature' },
+  maxRetries: 3,
+  timeoutMs: 300000
+});
+```
+
+## CLI Reference
+
+| Command | Description |
+|---------|-------------|
+| `bun run src/runtime/skill-runner.ts --skill <name>` | Run a skill |
+| `bun run src/runtime/skill-runner.ts --list` | List available skills |
+| `bun run src/runtime/task.ts --create --skill <name>` | Create a task |
+| `bun run src/runtime/task.ts --run <task_id>` | Execute a task |
+| `bun run src/runtime/task.ts --status <task_id>` | Get task status |
+| `bun run src/runtime/task.ts --list` | List all tasks |
+| `bun run src/runtime/fork.ts --agent <id> --skill <name>` | Fork a child process |
+| `bun run src/runtime/swarm.ts --mode parallel --agents 3` | Run swarm demo |
+| `bun run src/runtime/coordinator.ts --register --agent <path>` | Register an agent |
+| `bun run src/runtime/coordinator.ts --list-agents` | List agents |
+| `bun run src/runtime/coordinator.ts --schedule --task <json>` | Schedule a task |
+| `bun run src/runtime/memory.ts --save --agent <id> --type <type> --content <text>` | Save memory |
+| `bun run src/runtime/memory.ts --recall --agent <id> --query <text>` | Search memories |
+| `bun run src/runtime/context.ts --build --agent <id> --task <task>` | Build context |
+| `bun run src/runtime/context.ts --snapshot` | Save context snapshot |
+| `bun run src/runtime/context.ts --restore --file <path>` | Restore from snapshot |
+| `bun run src/runtime/hooks.ts --trigger <name> --data <json>` | Trigger hooks |
+| `bun run src/runtime/hooks.ts --list` | List registered hooks |
