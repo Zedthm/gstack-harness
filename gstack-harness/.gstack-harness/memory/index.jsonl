@@ -1,2 +1,4 @@
 {"key": "test", "value": "value", "source": "LocalMemory", "timestamp": 1777656584.7784686, "tags": []}
 {"key": "persist_test", "value": "hello", "source": "LocalMemory", "timestamp": 1777656598.3871567, "tags": []}
+{"key": "k", "value": "v", "source": "LocalMemory", "timestamp": 1777659095.6994355, "tags": []}
+{"key": "x", "value": "y", "source": "LocalMemory", "timestamp": 1777659216.7909105, "tags": []}
